@@ -76,8 +76,10 @@ my ($adpan_id, $adpan_name, $campaign_id);
 # - contains DynamicAdGroup
 # - status is active for at least 1 dynamicadgroup
 # - status is active for campaign
+# - start time < now, end time > now or 0
 my $criteria_fulfilled = 0;
 my $found_active_dynamic;
+my $now = time();
 while (<$f_campaign>) {
     if (/^   ulong id : (\d+)\s*$/) {
         $campaign_id = $1;
@@ -91,10 +93,21 @@ while (<$f_campaign>) {
             $criteria_fulfilled++;
             $found_active_dynamic = 1;
         }
-    } elsif ($_ eq "   ubyte status : 1\n") {
+    } elsif ($_ eq "   ubyte status : 1\n") { # campaign status
         $criteria_fulfilled++;
+    } elsif ($_ eq "         struct valid_utc:\n") {
+        <>;
+        my ($min) = /^ {12}TimeStamp min : (\d+)$/;
+        if ($min < $now) {
+            $criteria_fulfilled++;
+        }
+        <>;
+        my ($max) = /^ {12}TimeStamp max : (\d+)$/;
+        if ($max > $now || $max == 0) {
+            $criteria_fulfilled++;
+        }
     } elsif (/^$/) {
-        if ($criteria_fulfilled == 3) {
+        if ($criteria_fulfilled == 5) {
             open my $f_out, '>', "experiment_$adpan_names{$adpan_id}_$campaign_id.env";
             print $f_out <<"EOF";
 ADPAN_ID=$adpan_id
