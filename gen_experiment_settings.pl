@@ -74,9 +74,10 @@ open my $f_campaign, '-|', "$base/profileview -c campaign_metadata -A"
 my ($adpan_id, $adpan_name, $campaign_id);
 # criteria:
 # - contains DynamicAdGroup
-# - status is active for dynamicadgroup
+# - status is active for at least 1 dynamicadgroup
 # - status is active for campaign
 my $criteria_fulfilled = 0;
+my $found_active_dynamic;
 while (<$f_campaign>) {
     if (/^   ulong id : (\d+)\s*$/) {
         $campaign_id = $1;
@@ -86,7 +87,10 @@ while (<$f_campaign>) {
         $criteria_fulfilled++;
     } elsif ($criteria_fulfilled >= 1 .. /^         /) {
       # if found Dynamic and while indent level is higher
-        $criteria_fulfilled++ if $_ eq "         ubyte status : 1\n";
+        if ($_ eq "         ubyte status : 1\n" && !$found_active_dynamic) {
+            $criteria_fulfilled++;
+            $found_active_dynamic = 1;
+        }
     } elsif ($_ eq "   ubyte status : 1\n") {
         $criteria_fulfilled++;
     } elsif (/^$/) {
@@ -107,5 +111,6 @@ EOF
             close $f_out;
         }
         $criteria_fulfilled = 0;
+        $found_active_dynamic = undef;
     }
 }
