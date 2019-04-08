@@ -72,7 +72,10 @@ open my $f_campaign, '-|', "$base/profileview -c campaign_metadata -A"
     or die "Unable to run profileview: $!\n";
 
 my ($adpan_id, $adpan_name, $campaign_id);
-# criteria: contains DynamicAdGroup and status is active
+# criteria:
+# - contains DynamicAdGroup
+# - status is active for dynamicadgroup
+# - status is active for campaign
 my $criteria_fulfilled = 0;
 while (<$f_campaign>) {
     if (/^   ulong id : (\d+)\s*$/) {
@@ -84,8 +87,10 @@ while (<$f_campaign>) {
     } elsif ($criteria_fulfilled >= 1 .. /^         /) {
       # if found Dynamic and while indent level is higher
         $criteria_fulfilled++ if $_ eq "         ubyte status : 1\n";
+    } elsif ($_ eq "   ubyte status : 1\n") {
+        $criteria_fulfilled++;
     } elsif (/^$/) {
-        if ($criteria_fulfilled == 2) {
+        if ($criteria_fulfilled == 3) {
             open my $f_out, '>', "experiment_$adpan_names{$adpan_id}_$campaign_id.env";
             print $f_out <<"EOF";
 ADPAN_ID=$adpan_id
