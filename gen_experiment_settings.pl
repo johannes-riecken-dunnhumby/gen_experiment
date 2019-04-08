@@ -5,10 +5,13 @@ use v5.10;
 
 use File::Basename;
 
+my %opts;
+my @opt_names = qw(training_start training_end test_start test_end);
+my $usage_opts = join ' ', map { "<$_>" } @opt_names;
 sub usage {
     say STDERR<<"EOF";
 
-usage: $0 <training_start> <training_end> <test_start> <test_end>
+usage: $0 $usage_opts
 Date format: 2019-03-19T23:59:59
 
 Generates experiment.env files for each active campaign (retargeting)
@@ -28,19 +31,19 @@ sub find_base() {
         }
 
         if (-x '/srv/profileview/profileview') {
-                return '/srv/profileview';      
+                return '/srv/profileview';
         }
 
         say STDERR "can't find profileview";
         exit 1;
 }
 
-if (@ARGV != 4) {
+if (@ARGV != @opt_names) {
     usage();
 }
 
 # Settings common to all campaigns
-my ($training_start, $training_end, $test_start, $test_end) = @ARGV;
+@opts{@opt_names} = @ARGV;
 my $region = `hostname` =~ s/-\d+\n//r;
 
 # Find directory profileview is in
@@ -83,10 +86,10 @@ CAMPAIGN_ID=$campaign_id
 REGION=$region
 RANKING_PATH="data/ranking.txt" #(by default)
 PROCESSING_MODE="complete" #("basket and sales", "user sessions", "complete"
-TRAINING_START=$training_start
-TRAINING_END=$training_end
-TEST_START=$test_start
-TEST_END=$test_end
+TRAINING_START=$opts{training_start}
+TRAINING_END=$opts{training_end}
+TEST_START=$opts{test_start}
+TEST_END=$opts{test_end}
 EOF
         close $f_out;
     }
