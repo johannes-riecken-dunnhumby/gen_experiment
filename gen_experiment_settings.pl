@@ -89,11 +89,11 @@ while (<$f_campaign>) {
             open my $f_out, '>', "experiment_$adpan_names{$adpan_id}_$campaign_id.env";
             print $f_out <<"EOF";
 ADPAN_ID=$adpan_id
-ADPAN_NAME=$adpan_names{$adpan_id}
+ADPAN_NAME="$adpan_names{$adpan_id}"
 CAMPAIGN_ID=$campaign_id
-REGION=$region
+REGION="$region"
 RANKING_PATH="data/$opts{tag}_$adpan_names{$adpan_id}_ranking.txt"
-PROCESSING_MODE=$opts{processing_mode}
+PROCESSING_MODE="$opts{processing_mode}"
 TRAINING_START=$opts{training_start}
 TRAINING_END=$opts{training_end}
 TEST_START=$opts{test_start}
