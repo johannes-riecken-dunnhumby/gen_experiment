@@ -6,7 +6,7 @@ use v5.10;
 use File::Basename;
 
 my %opts;
-my @opt_names = qw(training_start training_end test_start test_end);
+my @opt_names = qw(processing_mode training_start training_end test_start test_end);
 my $usage_opts = join ' ', map { "<$_>" } @opt_names;
 sub usage {
     say STDERR<<"EOF";
@@ -85,7 +85,7 @@ ADPAN_NAME=$adpan_names{$adpan_id}
 CAMPAIGN_ID=$campaign_id
 REGION=$region
 RANKING_PATH="data/ranking.txt" #(by default)
-PROCESSING_MODE="complete" #("basket and sales", "user sessions", "complete"
+PROCESSING_MODE=$opts{processing_mode}
 TRAINING_START=$opts{training_start}
 TRAINING_END=$opts{training_end}
 TEST_START=$opts{test_start}
