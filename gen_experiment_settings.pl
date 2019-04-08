@@ -72,14 +72,22 @@ open my $f_campaign, '-|', "$base/profileview -c campaign_metadata -A"
     or die "Unable to run profileview: $!\n";
 
 my ($adpan_id, $adpan_name, $campaign_id);
+# criteria: contains DynamicAdGroup and status is active
+my $criteria_fulfilled = 0;
 while (<$f_campaign>) {
     if (/^   ulong id : (\d+)\s*$/) {
         $campaign_id = $1;
     } elsif (/^   Hash adpan_id : (\d+) *$/) {
         $adpan_id = $1;
+    } elsif ($_ eq "      struct DynamicAdGroup:\n") {
+        $criteria_fulfilled = 1;
+    } elsif ($criteria_fulfilled == 1 .. /^         /) {
+      # if found Dynamic and while indent level is higher
+        $criteria_fulfilled = 2 if $_ eq "         ubyte status : 1\n";
     } elsif (/^$/) {
-        open my $f_out, '>', "experiment_$adpan_names{$adpan_id}_$campaign_id.env";
-        print $f_out <<"EOF";
+        if ($criteria_fulfilled == 2) {
+            open my $f_out, '>', "experiment_$adpan_names{$adpan_id}_$campaign_id.env";
+            print $f_out <<"EOF";
 ADPAN_ID=$adpan_id
 ADPAN_NAME=$adpan_names{$adpan_id}
 CAMPAIGN_ID=$campaign_id
@@ -91,6 +99,8 @@ TRAINING_END=$opts{training_end}
 TEST_START=$opts{test_start}
 TEST_END=$opts{test_end}
 EOF
-        close $f_out;
+            close $f_out;
+        }
+        $criteria_fulfilled = 0;
     }
 }
