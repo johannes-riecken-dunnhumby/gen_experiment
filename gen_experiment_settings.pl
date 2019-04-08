@@ -80,10 +80,10 @@ while (<$f_campaign>) {
     } elsif (/^   Hash adpan_id : (\d+) *$/) {
         $adpan_id = $1;
     } elsif ($_ eq "      struct DynamicAdGroup:\n") {
-        $criteria_fulfilled = 1;
-    } elsif ($criteria_fulfilled == 1 .. /^         /) {
+        $criteria_fulfilled++;
+    } elsif ($criteria_fulfilled >= 1 .. /^         /) {
       # if found Dynamic and while indent level is higher
-        $criteria_fulfilled = 2 if $_ eq "         ubyte status : 1\n";
+        $criteria_fulfilled++ if $_ eq "         ubyte status : 1\n";
     } elsif (/^$/) {
         if ($criteria_fulfilled == 2) {
             open my $f_out, '>', "experiment_$adpan_names{$adpan_id}_$campaign_id.env";
